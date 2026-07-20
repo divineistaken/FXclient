@@ -7,6 +7,11 @@ import webpack from 'webpack';
 import path from 'path';
 import ModUtils, { minifyCode } from './modUtils.js';
 
+{ // color debug output in gray
+  const old_debug = console.debug
+  console.debug = (...args) => old_debug("\x1b[90m", ...args, "\x1b[0m")
+}
+
 if (!fs.existsSync("./build")) fs.mkdirSync("./build");
 fs.cpSync("./static/", "./build/", { recursive: true });
 fs.cpSync("./assets/", "./build/assets/", { recursive: true });
@@ -45,8 +50,8 @@ const buildClientCode = () => /** @type {Promise<void>} */(new Promise((resolve,
 async function patchGameCode() {
 
 	let script = fs.readFileSync('./game/latest.js', { encoding: 'utf8' }).trim();
-	console.log("script start: ", script.slice(0, 500))
-	console.log("script end: ", script.slice(-500))
+	console.debug("Script start: ", script.slice(0, 250))
+	console.debug("Script end: ", script.slice(-250))
 
 	const exposeVarsToGlobalScope = true;
 	// need to first remove the iife wrapper so the top-level functions aren't inlined
