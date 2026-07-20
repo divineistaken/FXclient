@@ -42,7 +42,7 @@ export default definePatch(({ insertCode, modifyCode, replaceCode }) => {
   // Disable built-in Territorial.io error reporting
   insertCode(
     `window.removeEventListener("error", err);
-    msg = e.lineno + " " + e.colno + "|" + getStack(e); /* here */`,
+    msg = e.lineno + " " + e.colno + "|" + stack; /* here */`,
     `__fx.reportError(e, msg);
     return alert("Error:\\n" + e.filename + " " + e.lineno + " " + e.colno + " " + e.message);`
   )

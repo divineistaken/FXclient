@@ -2,64 +2,64 @@ import { definePatch, insert } from "../modUtils.js";
 
 export default definePatch(({ safeDictionary: dict, modifyCode, waitForMinification, matchCode, replaceOne, replaceRawCode }) => {
 
-    // Player list and leaderboard filter tabs
+	// Player list and leaderboard filter tabs
 
-    const uiOffset = dict.uiSizes + "." + dict.gap
-    const rawPlayerNames = dict.playerData + "." + dict.rawPlayerNames
+	const uiOffset = dict.uiSizes + "." + dict.gap
+	const rawPlayerNames = dict.playerData + "." + dict.rawPlayerNames
 
-    const { topBarHeight } = matchCode(`aAn = 0.000 * aAd; topBarHeight = Math.floor(0.45 * aAm + aAf);`)
-    const buttonBoundsCheck = `__fx.utils.isPointInRectangle(x, y, ${uiOffset} + 12, ${uiOffset} + 12, ${topBarHeight} - 22, ${topBarHeight} - 22)`
+	const { topBarHeight } = matchCode(`aAn = 0.000 * aAd; topBarHeight = Math.floor(0.45 * aAm + aAf);`)
+	const buttonBoundsCheck = `__fx.utils.isPointInRectangle(x, y, ${uiOffset} + 12, ${uiOffset} + 12, ${topBarHeight} - 22, ${topBarHeight} - 22)`
 
-    // Handle player list button and leaderboard tabs mouseDown
-    // and create a function for scrolling the leaderboard to the top
-    modifyCode(`/*insert line:*/__fx.leaderboardFilter.scrollToTop = function(){position = 0;}
-        this.mouseDown = function(x, y) {
-		if (a4L(x, y)) {
-            /*insert line:*/ if (${buttonBoundsCheck}) return (__fx.playerList.display(${rawPlayerNames}), true)
-            /*insert line:*/ if (y - ${uiOffset} > __fx.leaderboardFilter.verticalClickThreshold)
-            /*insert line:*/    return __fx.leaderboardFilter.handleMouseDown(x - ${uiOffset})
-			var aZA = aZB(y);
-			if (aZA >= 0) {
-				aYm = aF.time;
-				aYn = true;
-				aYo = aYp = aZA;
-				if (qr.rA()) {
-					aZA = iA(-1, aYp, windowHeight);
-					aZA = (aZA === windowHeight) ? -1 : aZA;
-					if (aYl !== aZA) {
-						aYl = aZA;
-						drawFunction();
-						aF.requestRepaint = true;
-					}
+	// Handle player list button and leaderboard tabs mouseDown
+	// and create a function for scrolling the leaderboard to the top
+	modifyCode(`/*insert line:*/__fx.leaderboardFilter.scrollToTop = function(){position = 0;}
+			this.mouseDown = function(x, y) {
+	if (a4L(x, y)) {
+		/*insert line:*/ if (${buttonBoundsCheck}) return (__fx.playerList.display(${rawPlayerNames}), true)
+		/*insert line:*/ if (y - ${uiOffset} > __fx.leaderboardFilter.verticalClickThreshold)
+		/*insert line:*/    return __fx.leaderboardFilter.handleMouseDown(x - ${uiOffset})
+		var aZA = aZB(y);
+		if (aZA >= 0) {
+			aYm = aF.time;
+			aYn = true;
+			aYo = aYp = aZA;
+			if (qr.rA()) {
+				aZA = iA(-1, aYp, windowHeight);
+				aZA = (aZA === windowHeight) ? -1 : aZA;
+				if (aYl !== aZA) {
+					aYl = aZA;
+					drawFunction();
+					aF.requestRepaint = true;
 				}
-				return true;
 			}
-			if (aYq) {
-				aYq = false;
-				drawFunction();
-				aF.requestRepaint = true;
-			}
-			fZ.ff(10, 0, new zU({ zW: 1 }));
 			return true;
 		}
-		return false;
+		if (aYq) {
+			aYq = false;
+			drawFunction();
+			aF.requestRepaint = true;
+		}
+		fZ.ff(10, 0, new zU({ zW: 1 }));
+		return true;
+	}
+	return false;
 	};`)
 
-    // Handle player list button and leaderboard tabs hover
-    // and create a function for repainting the leaderboard
-    modifyCode(`/*insert line:*/ var repaintLb = __fx.leaderboardFilter.repaintLeaderboard = function() { drawFunction(), aF.requestRepaint = true; };
-    this.mouseMove = function(x, y) {
-        ${insert(`if (${buttonBoundsCheck}) {
-                __fx.playerList.hoveringOverButton === false && (__fx.playerList.hoveringOverButton = true, repaintLb());
-            } else {
-                __fx.playerList.hoveringOverButton === true && (__fx.playerList.hoveringOverButton = false, repaintLb());
-            }
-            if (__fx.leaderboardFilter.setHovering(
-                __fx.utils.isPointInRectangle(
-                    x, y, ${uiOffset}, ${uiOffset} + __fx.leaderboardFilter.verticalClickThreshold,
-                    __fx.leaderboardFilter.windowWidth, __fx.leaderboardFilter.tabBarOffset
-                ), x - ${uiOffset}
-            )) return;`)}
+	// Handle player list button and leaderboard tabs hover
+	// and create a function for repainting the leaderboard
+	modifyCode(`/*insert line:*/ var repaintLb = __fx.leaderboardFilter.repaintLeaderboard = function() { drawFunction(), aF.requestRepaint = true; };
+	this.mouseMove = function(x, y) {
+		${insert(`if (${buttonBoundsCheck}) {
+						__fx.playerList.hoveringOverButton === false && (__fx.playerList.hoveringOverButton = true, repaintLb());
+				} else {
+						__fx.playerList.hoveringOverButton === true && (__fx.playerList.hoveringOverButton = false, repaintLb());
+				}
+				if (__fx.leaderboardFilter.setHovering(
+						__fx.utils.isPointInRectangle(
+								x, y, ${uiOffset}, ${uiOffset} + __fx.leaderboardFilter.verticalClickThreshold,
+								__fx.leaderboardFilter.windowWidth, __fx.leaderboardFilter.tabBarOffset
+						), x - ${uiOffset}
+				)) return;`)}
 		var aJ;
 		var aZA = aZB(y);
 		var aZC = a4L(x, y);
@@ -79,6 +79,19 @@ export default definePatch(({ safeDictionary: dict, modifyCode, waitForMinificat
 			} /*...*/
 		}
 	};`)
+
+	// Display donations for a player when clicking on them in the leaderboard
+	// and skip handling clicks when clicking on an empty space (see the isEmptySpace
+	// variable in the modified leaderboard click handler from the leaderboard filter)
+	{
+		const { game, gIsTeamGame, gIsSingleplayer, rawPlayerNames } = dict
+		modifyCode(`
+			${insert(`if (!isEmptySpace && game.gIsTeamGame && __fx.settings.openDonationHistoryFromLb)
+				__fx.donationsTracker.displayHistory(player, playerData.rawPlayerNames, game.gIsSingleplayer);`)}
+			if (playerData.b[player] !== 0 ${insert(`&& !isEmptySpace`)} && !(game.d && !game.e && !game.f)) {
+				c.animateCamera(player, 800, false, 0);
+			}`, { dictionary: { game, gIsTeamGame, gIsSingleplayer, rawPlayerNames }})
+	}
 
     waitForMinification(() => {
         // Draw player list button
@@ -164,7 +177,7 @@ export default definePatch(({ safeDictionary: dict, modifyCode, waitForMinificat
                 `var a0p = a0q(fJ);
 		var isEmptySpace = false;
 		return ag.tQ() && -1 !== a0P && (a0P = -1, a0Y(), b3.d1 = !0), b3.dY - a0Q < 350 && a0T === a0p && -1 !== (a0p = (a0p = yr(-1, a0p, windowHeight)) !== windowHeight && vU(x, y) ? a0p : -1) && (x = (__fx.leaderboardFilter.enabled ? (updateFilteredLb(), leaderboardArray[__fx.leaderboardFilter.filteredLeaderboard[a0p + position] ?? (isEmptySpace = true, leaderboardPositionsById[game.playerId])]) : leaderboardArray[a0p + position]), a0p === windowHeight - 1 && (__fx.leaderboardFilter.enabled ? this.playerPos : leaderboardPositionsById[game.playerId]) >=
-			position + windowHeight - 1 && (x = game.playerId), !isEmptySpace && `);
+			position + windowHeight - 1 && (x = game.playerId),`);
             // Get clan parsing function
             replaceRawCode(`this.uI=function(username){var uK,uJ=username.indexOf("[");return!(uJ<0)&&1<(uK=username.indexOf("]"))-uJ&&uK-uJ<=8?username.substring(uJ+1,uK).toUpperCase().trim():null},`,
                 `this.uI=function(username){var uK,uJ=username.indexOf("[");return!(uJ<0)&&1<(uK=username.indexOf("]"))-uJ&&uK-uJ<=8?username.substring(uJ+1,uK).toUpperCase().trim():null}, __fx.leaderboardFilter.parseClanFromPlayerName = this.uI;`);
