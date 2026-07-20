@@ -82,6 +82,12 @@ async function patchGameCode() {
 	}, {
 		code: `if (game.a && sidebar.getTime() < 350) {/*...*/}`,
 		addToDictionary: ["game", "sidebar", "getTime"]
+	}, {
+		code: `this.gIsTeamGame = this.gGameType < 7 || this.gGameType === 9;`,
+		addToDictionary: ["gIsTeamGame", "gGameType"]
+	}, {
+		code: `strs[0]=__L();strs[1]=game.gIsSingleplayer?__L():__L();`,
+		addToDictionary: ["strs", "gIsSingleplayer"]
 	}];
 	codeSegments.forEach(({ code, addToDictionary }) => {
 		modUtils.matchCode(code, { addToDictionary })
@@ -110,7 +116,6 @@ async function patchGameCode() {
 	const dictionary = modUtils.dictionary;
 
 	[
-		/,this\.(?<gIsTeamGame>\w+)=this\.\w+<7\|\|9===this\.\w+,/g,
 		/=function\((\w+),(\w+),\w+\){\1===(?<game>\w+)\.(?<playerId>\w+)\?\w+\(175," "\+\w+\(\d+,\[(?<playerData>\w+)\.(?<playerNames>\w+)\[\2\]\]\)\+": ",1001,\2,\w+\(/g,
 		/function \w+\(\)\{if\(2===(?<game>\w+)\.(?<gameState>\w+)\)return 1;\w+\.\w+\(\),\1\.\2=2,\1\.\w+=\1.\w+\}/g,
 		/(function \w+\((\w+),(?<fontSize>\w+),(?<x>\w+),(?<y>\w+),(?<canvas>\w+)\){)(\6\.fillText\((?<playerData>\w+)\.(?<playerNames>\w+)\[\2\],\4,\5\)),(\2<(?<game>\w+)\.(?<gHumans>\w+)&&2!==\8\.(?<playerStates>\w+)\[[^}]+)}/g,
@@ -119,10 +124,8 @@ async function patchGameCode() {
 
 	const rawCodeSegments = [
 		"1===a.b?this.@gLobbyMaxJoin=this.@gHumans:this.gLobbyMaxJoin=this.@data.@playerCount,this.tZ=this.gLobbyMaxJoin,this.@gBots=this.gLobbyMaxJoin-this.gHumans,this.sg=0,",
-		"[0]=__L(),@strs[1]=@game.@gIsSingleplayer?__L():__L(),",
 		"?(this.gB=Math.floor(.066*aK.fw),g5=aK.g5-4*@uiSizes.@gap-this.gB):",
 		`for(a0L=new Array(@game.@gMaxPlayers),a0A.font=a07,@i=game.gMaxPlayers-1;0<=i;i--)a0L[i]=i+1+".",@playerData.@playerNames[i]=aY.qW.tm(playerData.@rawPlayerNames[i],a07,a0W),a0K[i]=Math.floor(a0A.measureText(playerData.playerNames[i]).width);`,
-		//`var dt=@MenuManager.@getState();if(6===dt){if(4211===d)`
 	]
 
 	rawCodeSegments.forEach(code => {

@@ -126,12 +126,6 @@ function applyPatches(/** @type {ModUtils} */ { replace, replaceOne, replaceRawC
     replaceOne(/(this\.\w+=function\((\w+),(\w+)\)\{)(\2===\w+\.\w+&&\(\w+\.\w+\((\w+\.\w+)\[0\],\5\[1\],\3\),this\.(\w+)\[12\]\+=\5\[1\],this\.\6\[16\]\+=\5\[0\]\),\3===\w+\.\w+&&\()/g,
         `$1 __fx.donationsTracker.logDonation($2, $3, $5[0], ${dict.sidebar}.${dict.getTime}()); $4`)
 
-    // Display donations for a player when clicking on them in the leaderboard
-    // and skip handling clicks when clicking on an empty space (see the isEmptySpace
-    // variable in the modified leaderboard click handler from the leaderboard filter)
-    // match , 0 !== dG[x]) && fq.hB(x, 800, false, 0),
-    replaceOne(/(0!==\w+\.\w+\[(\w+)\])(\)&&\w+\.\w+\(\2,800,!1,0\),)/g,
-        `${dict.game}.${dict.gIsTeamGame} && __fx.settings.openDonationHistoryFromLb && __fx.donationsTracker.displayHistory($2, ${rawPlayerNames}, ${gIsSingleplayer}), $1 && !isEmptySpace $3`);
 
     // Detailed team pie chart percentage
     replaceRawCode(`qr=Math.floor(100*f0+.5)+"%"`,
