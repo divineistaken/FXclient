@@ -1,8 +1,8 @@
 {
-    "version": "0.6.20",
-    "lastUpdated": "May 19",
+    "version": "0.6.21",
+    "lastUpdated": "July 21",
     "changes": [
-        "The current tick number is now shown in the top bar near the balance. This can be disabled in the settings."
+        "New rivals tab in the leaderboard to show all clans sorted by cumulative land size and a feature that saves your last 5 replays."
     ],
     "isSignificant": true
 }
