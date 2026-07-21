@@ -4,8 +4,10 @@ export default definePatch(({ safeDictionary: dict, modifyCode, waitForMinificat
 
 	// Player list and leaderboard filter tabs
 
-	const uiOffset = dict.uiSizes + "." + dict.gap
-	const rawPlayerNames = dict.playerData + "." + dict.rawPlayerNames
+    const uiOffset = dict.uiSizes + "." + dict.gap
+    const rawPlayerNames = dict.playerData + "." + dict.rawPlayerNames
+    const playerBalances = dict.playerData + "." + dict.playerBalances
+    const playerTerritories = dict.playerData + "." + dict.playerTerritories
 
 	const { topBarHeight } = matchCode(`aAn = 0.000 * aAd; topBarHeight = Math.floor(0.45 * aAm + aAf);`)
 	const buttonBoundsCheck = `__fx.utils.isPointInRectangle(x, y, ${uiOffset} + 12, ${uiOffset} + 12, ${topBarHeight} - 22, ${topBarHeight} - 22)`
@@ -94,6 +96,12 @@ export default definePatch(({ safeDictionary: dict, modifyCode, waitForMinificat
 	}
 
     waitForMinification(() => {
+        const { cachedDisplayNameProp } = matchCode(
+            `PD.cachedDisplayNameProp[i] = someObj1.someObj2.someFn(RPN[i], someFont, someWidth)`,
+            { dictionary: { PD: dict.playerData, RPN: rawPlayerNames } }
+        )
+        const cachedDisplayName = dict.playerData + "." + cachedDisplayNameProp
+
         // Draw player list button
         replaceOne(/(="";function (?<drawFunction>\w+)\(\){[^}]+?(?<canvas>\w+)\.fillRect\(0,(?<topBarHeight>\w+),\w+,1\),(?:\3\.fillRect\([^()]+\),)+\3\.font=\w+,(\w+\.\w+)\.textBaseline\(\3,1\),\5\.textAlign\(\3,1\),\3\.fillText\(\w+,Math\.floor\()(\w+)\/2\),(Math\.floor\(\w+\+\w+\/2\)\));/g,
             "$1($6 + $<topBarHeight> - 22) / 2), $7; __fx.playerList.drawButton($<canvas>, 12, 12, $<topBarHeight> - 22);")
@@ -119,14 +127,21 @@ export default definePatch(({ safeDictionary: dict, modifyCode, waitForMinificat
 		a0A.fillStyle = aZ.kZ,
 		a0A.fillRect(0, a0F, a04, y9 - a0F);
 		if (__fx.leaderboardFilter.enabled) updateFilteredLb();
+		if (__fx.leaderboardFilter.showingRivals) __fx.leaderboardFilter.computeRivals();
 		var playerPos = (__fx.leaderboardFilter.enabled
 			? this.playerPos
 			: leaderboardPositionsById[game.playerId]
 		);
 		if (__fx.leaderboardFilter.hoveringOverTabs) a0P = -1;
 		if (__fx.leaderboardFilter.enabled && a0P >= __fx.leaderboardFilter.filteredLeaderboard.length) a0P = -1;
-		playerPos >= position && a0Z(playerPos - position, aZ.kw),
-		0 !== leaderboardPositionsById[game.playerId] && 0 === position && a0Z(0, aZ.lJ),
+		(__fx.leaderboardFilter.showingRivals
+			? (function() {
+				var ownClanIndex = __fx.leaderboardFilter.getOwnClanIndex();
+				if (ownClanIndex >= 0 && ownClanIndex >= position) a0Z(ownClanIndex - position, aZ.kw);
+			})()
+			: (playerPos >= position && a0Z(playerPos - position, aZ.kw),
+				0 !== leaderboardPositionsById[game.playerId] && 0 === position && a0Z(0, aZ.lJ))
+		),
 		-1 !== a0P && a0Z(a0P, aZ.kd),
 		a0A.fillStyle = aZ.kZ,
 		//console.log("drawing", a0P),
@@ -142,8 +157,39 @@ export default definePatch(({ safeDictionary: dict, modifyCode, waitForMinificat
 		a0A.fillRect(0, y9 - b0.ur, a04, b0.ur),`)
             replaceRawCode("var hZ,eh=leaderboardPositionsById[game.playerId]<position+windowHeight-1?1:2;for(a0A.font=a07,aY.g0.textAlign(a0A,0),hZ=windowHeight-eh;0<=hZ;hZ--)a0a(leaderboardArray[hZ+position]),a0b(hZ,hZ+position,leaderboardArray[hZ+position]);for(aY.g0.textAlign(a0A,2),hZ=windowHeight-eh;0<=hZ;hZ--)a0a(leaderboardArray[hZ+position]),a0c(hZ,leaderboardArray[hZ+position]);",
                 `var hZ, eh = playerPos < position + windowHeight - 1 ? 1 : 2;
-		
-		if (__fx.leaderboardFilter.enabled) {
+
+		if (__fx.leaderboardFilter.showingRivals) {
+			var rivalsRestore = [];
+			try {
+				for (var rivalsRow = 0; rivalsRow < windowHeight; rivalsRow++) {
+					var rivalsEntry = __fx.leaderboardFilter.rivalsData[rivalsRow + position];
+					if (rivalsEntry === undefined) break;
+					var repId = rivalsEntry.representativeId;
+					rivalsRestore.push([repId, ${rawPlayerNames}[repId], ${playerTerritories}[repId], ${playerBalances}[repId], ${cachedDisplayName}[repId]]);
+					${rawPlayerNames}[repId] = "[" + rivalsEntry.clan + "]";
+					${playerTerritories}[repId] = rivalsEntry.territory;
+					${playerBalances}[repId] = rivalsEntry.territory;
+					${cachedDisplayName}[repId] = "[" + rivalsEntry.clan + "]";
+				}
+				for (a0A.font = a07, aY.g0.textAlign(a0A, 0), hZ = windowHeight - eh; 0 <= hZ; hZ--) {
+					const rivalsEntryLeft = __fx.leaderboardFilter.rivalsData[hZ + position];
+					if (rivalsEntryLeft !== undefined)
+						a0a(rivalsEntryLeft.representativeId), a0b(hZ, hZ + position, rivalsEntryLeft.representativeId);
+				}
+				for (aY.g0.textAlign(a0A, 2), hZ = windowHeight - eh; 0 <= hZ; hZ--) {
+					const rivalsEntryRight = __fx.leaderboardFilter.rivalsData[hZ + position];
+					if (rivalsEntryRight !== undefined)
+						a0a(rivalsEntryRight.representativeId), a0c(hZ, rivalsEntryRight.representativeId);
+				}
+			} finally {
+				rivalsRestore.forEach(function(entry) {
+					${rawPlayerNames}[entry[0]] = entry[1];
+					${playerTerritories}[entry[0]] = entry[2];
+					${playerBalances}[entry[0]] = entry[3];
+					${cachedDisplayName}[entry[0]] = entry[4];
+				});
+			}
+		} else if (__fx.leaderboardFilter.enabled) {
 			let result = __fx.leaderboardFilter.filteredLeaderboard;
 			if (position !== 0 && position >= result.length - windowHeight)
 				position = (result.length > windowHeight ? result.length : windowHeight) - windowHeight;
@@ -181,6 +227,11 @@ export default definePatch(({ safeDictionary: dict, modifyCode, waitForMinificat
             // Get clan parsing function
             replaceRawCode(`this.uI=function(username){var uK,uJ=username.indexOf("[");return!(uJ<0)&&1<(uK=username.indexOf("]"))-uJ&&uK-uJ<=8?username.substring(uJ+1,uK).toUpperCase().trim():null},`,
                 `this.uI=function(username){var uK,uJ=username.indexOf("[");return!(uJ<0)&&1<(uK=username.indexOf("]"))-uJ&&uK-uJ<=8?username.substring(uJ+1,uK).toUpperCase().trim():null}, __fx.leaderboardFilter.parseClanFromPlayerName = this.uI;`);
+			// no pinning player on leaderboard in rivals tab
+            replaceRawCode(
+                `2==gi&&(aBj(aE.et),bD.r2.textAlign(aBH,0),aBk(aBF-1,kF[aE.et],aE.et),bD.r2.textAlign(aBH,2),aBl(aBF-1,aE.et)),`,
+                `!__fx.leaderboardFilter.showingRivals&&2==gi&&(aBj(aE.et),bD.r2.textAlign(aBH,0),aBk(aBF-1,kF[aE.et],aE.et),bD.r2.textAlign(aBH,2),aBl(aBF-1,aE.et)),`
+            );
         }
     })
 })

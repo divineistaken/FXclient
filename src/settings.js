@@ -36,6 +36,70 @@ __fx.makeMainMenuTransparent = false;
 /*var settingsGearIcon = document.createElement('img');
 settingsGearIcon.setAttribute('src', 'assets/geari_white.png');*/
 
+function ReplayHistoryList(container) {
+  const title = document.createElement("p");
+  title.innerHTML = "<b>Saved Replays</b> (auto-saves your last 5 games)";
+  container.append(title);
+
+  const list = document.createElement("div");
+  container.append(list);
+
+  function formatTime(timestamp) {
+    const minutes = Math.floor((Date.now() - timestamp) / 60000);
+    if (minutes < 1) return "just now";
+    if (minutes < 60) return minutes + "m ago";
+    const hours = Math.floor(minutes / 60);
+    if (hours < 24) return hours + "h ago";
+    return Math.floor(hours / 24) + "d ago";
+  }
+
+  function render() {
+    list.innerHTML = "";
+    if (!__fx.replayHistory) return; // not initialized yet
+    const replays = __fx.replayHistory.getAll();
+    if (!replays.length) {
+      const empty = document.createElement("small");
+      empty.innerText = "No replays saved yet. Finish a game and it'll show up here.";
+      list.append(empty);
+      return;
+    }
+    replays.forEach((replay) => {
+      const row = document.createElement("div");
+      row.style.display = "flex";
+      row.style.alignItems = "center";
+      row.style.gap = "6px";
+      row.style.marginBottom = "4px";
+
+      const label = document.createElement("small");
+      label.innerText = formatTime(replay.timestamp);
+      label.style.flex = "1";
+
+      const copyBtn = document.createElement("button");
+      copyBtn.type = "button";
+      copyBtn.innerText = "Copy";
+      copyBtn.addEventListener("click", () => {
+        navigator.clipboard.writeText(replay.data).then(() => {
+          copyBtn.innerText = "Copied!";
+          setTimeout(() => (copyBtn.innerText = "Copy"), 1500);
+        }).catch(() => alert("Could not copy automatically \u2014 select the text manually."));
+      });
+
+      const deleteBtn = document.createElement("button");
+      deleteBtn.type = "button";
+      deleteBtn.innerText = "Delete";
+      deleteBtn.addEventListener("click", () => {
+        __fx.replayHistory.remove(replay.timestamp);
+        render();
+      });
+
+      row.append(label, copyBtn, deleteBtn);
+      list.append(row);
+    });
+  }
+
+  this.update = render;
+}
+
 const settingsManager = new (function () {
   const settingsStructure = [
     {
@@ -128,6 +192,7 @@ const settingsManager = new (function () {
       for: "keybindButtons", type: "checkbox",
       label: "Keybind buttons", note: "Show keybind buttons above the troop selector (max 6)"
     },
+    ReplayHistoryList,
     function Footer(container) {
       const versionInfo = document.createElement("p");
       versionInfo.innerText = `FX Client v${versionData.version}`;

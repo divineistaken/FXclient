@@ -3,7 +3,7 @@ import { getVar } from "./gameInterface.js";
 export const leaderboardFilter = new (function() {
     //this.playersToInclude = [0,1,8,20,24,30,32,42,50,69,200,400,500,510,511]; // for testing
     this.playersToInclude = [];
-    this.tabLabels = ["ALL", "CLAN"];
+    this.tabLabels = ["ALL", "CLAN", "RIVALS"];
     // these get populated by the modified game code
     this.filteredLeaderboard = [];
     this.tabBarOffset = 0;
@@ -14,11 +14,42 @@ export const leaderboardFilter = new (function() {
     this.repaintLeaderboard = () => {};
     this.setUpdateFlag = () => {};
     this.parseClanFromPlayerName = () => { console.warn("parse function not set"); };
-    
+
     this.selectedTab = 0;
     this.tabHovering = -1;
     this.enabled = false;
     //this.enabled = true;
+    this.showingRivals = false;
+
+    this.rivalsData = [];
+    this.computeRivals = () => {
+        const rawNames = getVar("rawPlayerNames");
+        const playerTerritories = getVar("playerTerritories");
+        const gHumans = getVar("gHumans");
+        const totals = new Map();
+        for (let id = 0; id < gHumans; id++) {
+            const clan = this.parseClanFromPlayerName(rawNames[id]);
+            if (clan === null) continue;
+            const territory = playerTerritories[id] || 0;
+            const entry = totals.get(clan) || { territory: 0, representativeId: id, representativeTerritory: -1 };
+            entry.territory += territory;
+            if (territory > entry.representativeTerritory) {
+                entry.representativeTerritory = territory;
+                entry.representativeId = id;
+            }
+            totals.set(clan, entry);
+        }
+        this.rivalsData = Array.from(totals.entries())
+            .map(([clan, data]) => ({ clan, territory: data.territory, representativeId: data.representativeId }))
+            .sort((a, b) => b.territory - a.territory);
+    };
+    this.getOwnClanIndex = () => {
+        const playerId = getVar("playerId");
+        const ownClan = this.parseClanFromPlayerName(getVar("rawPlayerNames")[playerId]);
+        if (ownClan === null) return -1;
+        return this.rivalsData.findIndex((entry) => entry.clan === ownClan);
+    };
+
     this.drawTabs = function(canvas, totalWidth, verticalOffset, colorForSelectedTab) {
         canvas.textBaseline = "middle";
         canvas.textAlign = "center";
@@ -61,11 +92,17 @@ export const leaderboardFilter = new (function() {
         const tab = Math.floor(xRelative / (this.windowWidth / this.tabLabels.length));
         if (this.selectedTab !== tab) {
             this.selectedTab = tab;
+            this.showingRivals = false;
             if (this.selectedTab === 0) this.clearFilter();
             else if (this.selectedTab === 1) {
                 this.filterByOwnClan();
                 this.setUpdateFlag();
+            } else if (this.selectedTab === 2) {
+                this.enabled = false;
+                this.showingRivals = true;
+                this.computeRivals();
             }
+            this.scrollToTop();
             this.repaintLeaderboard();
         }
         return true;
@@ -83,6 +120,7 @@ export const leaderboardFilter = new (function() {
     this.clearFilter = () => { this.enabled = false; }
     this.reset = () => {
         this.enabled = false;
+        this.showingRivals = false;
         this.selectedTab = 0;
         clanFilter.refresh();
     }

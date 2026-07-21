@@ -13,6 +13,7 @@ import { keybindFunctions, keybindHandler, mobileKeybinds } from "./keybinds.js"
 import customLobby from './customLobby.js';
 import { displayChangelog } from './changelog.js';
 import { reportError } from './debugging.js';
+import replayHistory from './replayHistory.js';
 
 window.__fx = window.__fx || {};
 const __fx = window.__fx;
@@ -39,5 +40,6 @@ __fx.hoveringTooltip = hoveringTooltip;
 __fx.clanFilter = clanFilter;
 __fx.wins = winCounter;
 __fx.customLobby = customLobby;
+__fx.replayHistory = replayHistory;
 
 console.log('Successfully loaded FX Client');
