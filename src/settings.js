@@ -101,7 +101,11 @@ function ReplayHistoryList(container) {
         render();
       });
 
-      row.append(label, loadBtn, copyBtn, deleteBtn);
+            const downloadBtn = document.createElement("button");
+      downloadBtn.type = "button";
+      downloadBtn.innerText = "Download";
+      downloadBtn.addEventListener("click", () => {
+        const blob = new Blob([replay
       list.append(row);
     });
   }
