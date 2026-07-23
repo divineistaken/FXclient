@@ -1,8 +1,8 @@
 {
-    "version": "0.6.22",
-    "lastUpdated": "July 22",
+    "version": "0.6.23",
+    "lastUpdated": "July 23",
     "changes": [
-        "Fix endless scrolling and player underline effect in rivals tab (Merged PR #23 by QZxV4)"
+        "Added a seek bar for rewinding/fast-forwarding replays + added a Load button in the saved replay list in settings (Merged PR #24 by antimmdev). Visibility of the seek bar can be toggled in the settings."
     ],
-    "isSignificant": false
+    "isSignificant": true
 }
