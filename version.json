@@ -1,8 +1,8 @@
 {
-    "version": "0.6.21",
-    "lastUpdated": "July 21",
+    "version": "0.6.22",
+    "lastUpdated": "July 22",
     "changes": [
-        "New rivals tab in the leaderboard to show all clans sorted by cumulative land size + a feature that saves your last 5 replays. (Merged PR #22 by QZxV4)"
+        "Fix endless scrolling and player underline effect in rivals tab (Merged PR #23 by QZxV4)"
     ],
-    "isSignificant": true
+    "isSignificant": false
 }

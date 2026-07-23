@@ -101,6 +101,13 @@ export default definePatch(({ safeDictionary: dict, modifyCode, waitForMinificat
         )
         const cachedDisplayName = dict.playerData + "." + cachedDisplayNameProp
 
+        // capture the property controlling player state (for fixing underscore on clans in rivals tab)
+        const { playerStateProp } = matchCode(
+            `someCanvas.fillText(CDN[i], someX, someY), 0 !== PD.playerStateProp[i] && (someCanvas.font = someFont)`,
+            { dictionary: { PD: dict.playerData, CDN: cachedDisplayName } }
+        )
+        const playerState = dict.playerData + "." + playerStateProp
+
         // Draw player list button
         replaceOne(/(="";function (?<drawFunction>\w+)\(\){[^}]+?(?<canvas>\w+)\.fillRect\(0,(?<topBarHeight>\w+),\w+,1\),(?:\3\.fillRect\([^()]+\),)+\3\.font=\w+,(\w+\.\w+)\.textBaseline\(\3,1\),\5\.textAlign\(\3,1\),\3\.fillText\(\w+,Math\.floor\()(\w+)\/2\),(Math\.floor\(\w+\+\w+\/2\)\));/g,
             "$1($6 + $<topBarHeight> - 22) / 2), $7; __fx.playerList.drawButton($<canvas>, 12, 12, $<topBarHeight> - 22);")
@@ -162,15 +169,19 @@ export default definePatch(({ safeDictionary: dict, modifyCode, waitForMinificat
 		if (__fx.leaderboardFilter.showingRivals) eh = 1;
 
 		if (__fx.leaderboardFilter.showingRivals) {
+			let rivalsCount = __fx.leaderboardFilter.rivalsData.length;
+			if (position !== 0 && position >= rivalsCount - windowHeight)
+				position = (rivalsCount > windowHeight ? rivalsCount : windowHeight) - windowHeight;
 			var rivalsRestore = [];
 			try {
 				for (var rivalsRow = 0; rivalsRow < windowHeight; rivalsRow++) {
 					var rivalsEntry = __fx.leaderboardFilter.rivalsData[rivalsRow + position];
 					if (rivalsEntry === undefined) break;
 					var repId = rivalsEntry.representativeId;
-					rivalsRestore.push([repId, ${playerTerritories}[repId], ${cachedDisplayName}[repId]]);
+					rivalsRestore.push([repId, ${playerTerritories}[repId], ${cachedDisplayName}[repId], ${playerState}[repId]]);
 					${playerTerritories}[repId] = rivalsEntry.territory;
 					${cachedDisplayName}[repId] = "[" + rivalsEntry.clan + "]";
+					${playerState}[repId] = 0;
 				}
 				for (a0A.font = a07, aY.g0.textAlign(a0A, 0), hZ = windowHeight - eh; 0 <= hZ; hZ--) {
 					const rivalsEntryLeft = __fx.leaderboardFilter.rivalsData[hZ + position];
@@ -186,6 +197,7 @@ export default definePatch(({ safeDictionary: dict, modifyCode, waitForMinificat
 				rivalsRestore.forEach(function(entry) {
 					${playerTerritories}[entry[0]] = entry[1];
 					${cachedDisplayName}[entry[0]] = entry[2];
+					${playerState}[entry[0]] = entry[3];
 				});
 			}
 		} else if (__fx.leaderboardFilter.enabled) {
