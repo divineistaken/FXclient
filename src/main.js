@@ -14,6 +14,7 @@ import customLobby from './customLobby.js';
 import { displayChangelog } from './changelog.js';
 import { reportError } from './debugging.js';
 import replayHistory from './replayHistory.js';
+import replay from './replay.js';
 
 window.__fx = window.__fx || {};
 const __fx = window.__fx;
@@ -41,5 +42,6 @@ __fx.clanFilter = clanFilter;
 __fx.wins = winCounter;
 __fx.customLobby = customLobby;
 __fx.replayHistory = replayHistory;
+__fx.replay = replay;
 
 console.log('Successfully loaded FX Client');

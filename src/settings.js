@@ -27,7 +27,8 @@ var settings = {
   customBackgroundUrl: "",
   keybindButtons: false,
   attackPercentageKeybinds: [],
-  hidePropagandaPopup: false
+  hidePropagandaPopup: false,
+  showReplayTimebar: true
 };
 __fx.settings = settings;
 const discontinuedSettings = ["hideAllLinks", "fontName"];
@@ -74,6 +75,14 @@ function ReplayHistoryList(container) {
       label.innerText = formatTime(replay.timestamp);
       label.style.flex = "1";
 
+      const loadBtn = document.createElement("button");
+      loadBtn.type = "button";
+      loadBtn.innerText = "Load";
+      loadBtn.addEventListener("click", () => {
+        WindowManager.closeWindow("settings");
+        __fx.replayHistory.load(replay.data);
+      });
+
       const copyBtn = document.createElement("button");
       copyBtn.type = "button";
       copyBtn.innerText = "Copy";
@@ -92,7 +101,7 @@ function ReplayHistoryList(container) {
         render();
       });
 
-      row.append(label, copyBtn, deleteBtn);
+      row.append(label, loadBtn, copyBtn, deleteBtn);
       list.append(row);
     });
   }
@@ -191,6 +200,12 @@ const settingsManager = new (function () {
     {
       for: "keybindButtons", type: "checkbox",
       label: "Keybind buttons", note: "Show keybind buttons above the troop selector (max 6)"
+    },
+    {
+      for: "showReplayTimebar",
+      type: "checkbox",
+      label: "Replay timebar",
+      note: "Show a seek bar when watching replays, allowing you to skip to any point of the replay. Seeking backward re-simulates the replay from the start, which can take a few seconds.",
     },
     ReplayHistoryList,
     function Footer(container) {
