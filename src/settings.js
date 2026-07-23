@@ -101,11 +101,19 @@ function ReplayHistoryList(container) {
         render();
       });
 
-            const downloadBtn = document.createElement("button");
+                  const downloadBtn = document.createElement("button");
       downloadBtn.type = "button";
       downloadBtn.innerText = "Download";
       downloadBtn.addEventListener("click", () => {
-        const blob = new Blob([replay
+        const blob = new Blob([replay.data], { type: "text/plain" });
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(blob);
+        a.download = `replay_${replay.timestamp}.txt`;
+        a.click();
+        URL.revokeObjectURL(a.href);
+      });
+
+      row.append(label, loadBtn, copyBtn, deleteBtn, downloadBtn);
       list.append(row);
     });
   }
