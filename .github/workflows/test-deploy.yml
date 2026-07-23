@@ -1,4 +1,4 @@
-name: Test Build Deploy
+name: Test Build Zip
 
 on:
   push:
@@ -23,8 +23,8 @@ jobs:
       - name: Build Client
         run: npm run build
 
-      - name: Deploy to Test Pages
-        uses: peaceiris/actions-gh-pages@v3
+      - name: Zip Game Files
+        uses: actions/upload-artifact@v4
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./dist
+          name: fx-test-game
+          path: ./build
